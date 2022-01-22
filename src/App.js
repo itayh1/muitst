@@ -18,7 +18,7 @@ import Enter from "./component/EnterPage";
 import OwnsPage from "./component/OwnsPage";
 
 import { initializeApp } from "firebase/app";
-import { getFirestore } from "firebase/firestore";
+import { getFirestore, collection, getDoc, setDoc, updateDoc, doc, onSnapshot } from "firebase/firestore";
 import { getAuth, signInAnonymously, onAuthStateChanged } from "firebase/auth";
 import "firebase/auth";
 import "firebase/firestore";
@@ -60,8 +60,54 @@ onAuthStateChanged(auth, (user) => {
         console.log("logged out");
     }
 });
+async function signIn(auth) {
+    const res = await signInAnonymously(auth)
+        .then(() => {
+            console.log("Signed In");
+            return true;
+        })
+        .catch((error) => {
+            console.log(error.code);
+            console.log(error.message);
+            return false;
+        });
+    return res;
+}
+async function getOrSetGroup(data, roomName, userName) {
+    try {
+        const docRef = doc(data, roomName);
+        const queryRes = await getDoc(docRef);
 
-function getOrSetGroup() {}
+        if (queryRes.exists()) {
+            const queryData = queryRes.data();
+            if (queryData.owns.some((x) => x.name === userName)) {
+                alert(`The username ${userName} already taken`);
+                return null;
+            }
+            queryData.owns.push({ name: userName, items: [], prices: [] });
+            await updateDoc(docRef, { owns: queryData.owns });
+            return queryData;
+        } else {
+            const objToSet = { Name: roomName, owns: [{ name: userName, items: [], prices: [] }] };
+            await setDoc(doc(data, roomName), objToSet);
+            return objToSet;
+        }
+    } catch (error) {
+        console.log("Error while setting group: ", error);
+    }
+    return null;
+}
+
+async function addNewItem(data, ownsList, roomName, userName, itemName, itemPrice) {
+    const userIndex = ownsList.owns.findIndex((x) => x.name === userName);
+    if (userIndex === -1) return;
+    ownsList.owns[userIndex].items.push(itemName);
+    ownsList.owns[userIndex].prices.push(itemPrice);
+
+    const docRef = doc(data, roomName);
+    const res = await updateDoc(docRef, { owns: ownsList.owns });
+    console.log("Updated doc: ", res);
+}
 
 function CheckboxExample() {
     const [checked, setChecked] = useState(true);
@@ -71,30 +117,44 @@ function CheckboxExample() {
 function App() {
     const [isConnected, setIsConnected] = useState(false);
     const [user] = useAuthState(auth);
-    const signIn = () =>
-        signInAnonymously(auth)
-            .then(() => {
-                setIsConnected(true);
-                console.log("Signed In");
-            })
-            .catch((error) => {
-                console.log(error.code);
-                console.log(error.message);
-            });
-    const deals = {
-        groupName: "Nugat",
-        owns: [
-            { name: "Itay", items: ["Meat", "Water"], prices: [50, 30] },
-            { name: "Leon", items: ["Fuel"], prices: [100] },
-        ],
+    const data = collection(db, "deals");
+    const [roomName, setRoomName] = useState("");
+    const [userName, setUserName] = useState("");
+    const [ownsList, setOwnsList] = useState(null);
+    const EnterRoom = async (roomName, userName) => {
+        roomName = roomName;
+        let succeed = await signIn(auth);
+        if (!succeed) return;
+        const newOwnsList = await getOrSetGroup(data, roomName, userName);
+        if (!newOwnsList) return;
+        onSnapshot(doc(data, roomName), (doc) => {
+            const source = doc.metadata.hasPendingWrites ? "Local" : "Server";
+            setOwnsList(doc.data());
+            console.log(source, "data: ", doc.data());
+        });
+        setRoomName(roomName);
+        setUserName(userName);
+        setOwnsList(newOwnsList);
+        setIsConnected(true);
     };
+    const addItem = async (itemName, itemPrice) => {
+        addNewItem(data, ownsList, roomName, userName, itemName, itemPrice);
+    };
+
+    // const deals = {
+    //     groupName: "Nugat",
+    //     owns: [
+    //         { name: "Itay", items: ["Meat", "Water"], prices: [50, 30] },
+    //         { name: "Leon", items: ["Fuel"], prices: [100] },
+    //     ],
+    // };
     return (
         <ThemeProvider theme={theme}>
             {/* <Container maxWidth="sm"> */}
             <Navbar />
             <div className="App">
                 <header className="App-header">
-                    {isConnected && user ? <OwnsPage {...deals} /> : <Enter signIn={signIn} />}
+                    {isConnected && user ? <OwnsPage {...ownsList} addItem={addItem} myName={userName} /> : <Enter signIn={EnterRoom} />}
                     {/* <AppBar color="secondary">
                             <Toolbar>
                                 <IconButton>

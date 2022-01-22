@@ -8,8 +8,8 @@ function OwnsPage(props) {
     // console.log(props);
     return (
         <Container>
-            <Typography>Group name: {props.groupName}</Typography>
-            <UsersList owns={props.owns} />
+            <Typography>Group name: {props.Name}</Typography>
+            <UsersList owns={props.owns} addItem={props.addItem} myName={props.myName} />
             <Button>Calculate</Button>
         </Container>
     );
@@ -20,8 +20,9 @@ const Container = styled.div`
 `;
 
 OwnsPage.propTypes = {
-    groupName: PropTypes.string.isRequired,
-    // ownsMapping: PropTypes.
+    Name: PropTypes.string.isRequired,
+    addItem: PropTypes.func.isRequired,
+    myName: PropTypes.string.isRequired,
 };
 
 export default OwnsPage;
