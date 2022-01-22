@@ -10,13 +10,19 @@ function OwnsPage(props) {
         <Container>
             <Typography>Group name: {props.Name}</Typography>
             <UsersList {...props} />
-            <Button>Calculate</Button>
+            <Button>
+                <Typography fontWeight={600}>Calculate</Typography>
+            </Button>
         </Container>
     );
 }
 
 const Container = styled.div`
     margin-top: 2rem;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 `;
 
 OwnsPage.propTypes = {

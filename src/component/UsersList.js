@@ -6,11 +6,11 @@ import styled from "styled-components";
 
 function UsersList(props) {
     return (
-        <div>
+        <UsersContainer container spacing={2}>
             {props.owns.map((item) => (
                 <UserDetail key={item.name} {...item} addItem={props.addItem} removeItem={props.removeItem} myName={props.myName} />
             ))}
-        </div>
+        </UsersContainer>
     );
 }
 
@@ -21,7 +21,7 @@ function UserDetail(props) {
     const items = props.items.map((item, i) => [item, props.prices[i]]);
     const list = items.map((x, i) => (
         <ListItem key={x[0]}>
-            {x[0]}:{x[1]}
+            {x[0]} <PriceContainer>{x[1]}</PriceContainer>
             {isMyDetails && <Remove onClick={(e) => props.removeItem(i)} />}
         </ListItem>
     ));
@@ -30,60 +30,84 @@ function UserDetail(props) {
         setItem({ name: "", price: "" });
     };
     return (
-        <GlassLayout value={100}>
-            <DetailsContainer>
-                <InnerDetailsContainer>
-                    <Typography>{props.name}</Typography>
-                    <List>{list}</List>
-                </InnerDetailsContainer>
-                {isMyDetails && (
-                    <AddItemContainer>
-                        <Input value={item.name} name="name" onChange={(e) => setItem({ ...item, [e.target.name]: e.target.value })} />
-                        <Input value={item.price} name="price" onChange={(e) => setItem({ ...item, [e.target.name]: e.target.value })} />
-                        <Add onClick={submit} />
-                    </AddItemContainer>
-                )}
-            </DetailsContainer>
-        </GlassLayout>
+        <Grid item>
+            <GlassLayout value={200}>
+                <DetailsContainer>
+                    <InnerDetailsContainer>
+                        <Typography>{props.name}</Typography>
+                        <List>{list}</List>
+                    </InnerDetailsContainer>
+                    {isMyDetails && (
+                        <AddItemContainer>
+                            <Input value={item.name} name="name" onChange={(e) => setItem({ ...item, [e.target.name]: e.target.value })} />
+                            <Input value={item.price} name="price" onChange={(e) => setItem({ ...item, [e.target.name]: e.target.value })} />
+                            <Add onClick={submit} />
+                        </AddItemContainer>
+                    )}
+                </DetailsContainer>
+            </GlassLayout>
+        </Grid>
     );
 }
 
 const GlassLayout = styled.div`
-    background-color: rgba(${(p) => p.value}, ${(p) => p.value}, ${(p) => p.value}, 0.4);
-    background-image: linear-gradient(to bottom right, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0));
-    backdrop-filter: blur(7px);
-    box-shadow: 10px 10px 10px rgba(30, 30, 30, 0.1);
+    background-color: rgba(${(p) => p.value}, ${(p) => p.value}, ${(p) => p.value}, 0.1);
+    /* background-image: linear-gradient(to bottom right, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0)); */
+    backdrop-filter: blur(5px);
+    box-shadow: 20px 20px 20px rgba(30, 30, 30, 0.1);
     border-radius: 20px;
-    border-left: solid 1px rgba(255, 255, 255, 0.3);
-    border-top: solid 1px rgba(255, 255, 255, 0.8);
+    /* border-left: solid 1px rgba(255, 255, 255, 0.3);
+    border-top: solid 1px rgba(255, 255, 255, 0.8); */
 
     padding: 8px;
     margin-top: 8px;
 `;
 
-const DetailsContainer = styled.div`
+const UsersContainer = styled(Grid)`
+    display: flex;
+    flex-wrap: wrap;
+
+    width: 60% !important;
+`;
+
+const DetailsContainer = styled("div")`
     display: flex;
     flex-direction: column;
     justify-content: center;
-    align-items: center;
+    align-items: flex-start;
 
-    /* backdrop-filter: blur(35px);
-    background-color: rgba(255, 255, 255, 0.8);
-    border-radius: 30px; */
-
-    color: black;
+    color: white;
 `;
 
 const InnerDetailsContainer = styled.div`
     display: flex;
-    flex-direction: row;
+    flex-direction: column;
     justify-content: center;
-    align-items: center;
+    align-items: flex-start;
+
+    p {
+        opacity: 0.6;
+        text-align: left;
+    }
+    ul {
+        padding-left: 10px;
+    }
+`;
+
+const PriceContainer = styled.div`
+    background-color: #3d4446;
+    border-radius: 15px;
+    margin-left: 10px;
+    padding: 5px;
 `;
 
 const AddItemContainer = styled.div`
     flex-direction: row;
     align-items: center;
+
+    input {
+        color: white;
+    }
 `;
 UserDetail.propTypes = {
     name: PropTypes.string.isRequired,
@@ -101,4 +125,5 @@ UsersList.propTypes = {
     myName: PropTypes.string.isRequired,
 };
 
+export { GlassLayout };
 export default UsersList;
