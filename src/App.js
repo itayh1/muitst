@@ -5,7 +5,7 @@ import "./App.css";
 import { Button, ButtonGroup, Checkbox, FormControlLabel } from "@mui/material";
 
 import { ThemeProvider, createTheme } from "@mui/material";
-import { green, orange } from "@mui/material/colors";
+import { green, amber, teal } from "@mui/material/colors";
 
 import { Typography, Container, Paper, Grid, AppBar, Toolbar, IconButton } from "@mui/material";
 import { Menu } from "@mui/icons-material";
@@ -40,12 +40,8 @@ const db = getFirestore();
 const theme = createTheme({
     typography: { h5: { fontSize: 25, margin: "10px" } },
     palette: {
-        primary: {
-            main: orange[500],
-        },
-        secondary: {
-            main: green[600],
-        },
+        primary: teal,
+        secondary: amber,
     },
 });
 
@@ -106,7 +102,18 @@ async function addNewItem(data, ownsList, roomName, userName, itemName, itemPric
 
     const docRef = doc(data, roomName);
     const res = await updateDoc(docRef, { owns: ownsList.owns });
-    console.log("Updated doc: ", res);
+    console.log("Added item");
+}
+
+async function removeExistingItem(data, ownsList, roomName, userName, itemIndex) {
+    const userIndex = ownsList.owns.findIndex((x) => x.name === userName);
+    if (userIndex === -1) return;
+    ownsList.owns[userIndex].items.splice(itemIndex, 1);
+    ownsList.owns[userIndex].prices.splice(itemIndex, 1);
+
+    const docRef = doc(data, roomName);
+    const res = await updateDoc(docRef, { owns: ownsList.owns });
+    console.log("Removes item");
 }
 
 function CheckboxExample() {
@@ -140,6 +147,9 @@ function App() {
     const addItem = async (itemName, itemPrice) => {
         addNewItem(data, ownsList, roomName, userName, itemName, itemPrice);
     };
+    const removeItem = async (itemIndex) => {
+        removeExistingItem(data, ownsList, roomName, userName, itemIndex);
+    };
 
     // const deals = {
     //     groupName: "Nugat",
@@ -154,7 +164,7 @@ function App() {
             <Navbar />
             <div className="App">
                 <header className="App-header">
-                    {isConnected && user ? <OwnsPage {...ownsList} addItem={addItem} myName={userName} /> : <Enter signIn={EnterRoom} />}
+                    {isConnected && user ? <OwnsPage {...ownsList} addItem={addItem} removeItem={removeItem} myName={userName} /> : <Enter signIn={EnterRoom} />}
                     {/* <AppBar color="secondary">
                             <Toolbar>
                                 <IconButton>

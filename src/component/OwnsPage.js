@@ -9,7 +9,7 @@ function OwnsPage(props) {
     return (
         <Container>
             <Typography>Group name: {props.Name}</Typography>
-            <UsersList owns={props.owns} addItem={props.addItem} myName={props.myName} />
+            <UsersList {...props} />
             <Button>Calculate</Button>
         </Container>
     );
@@ -22,6 +22,7 @@ const Container = styled.div`
 OwnsPage.propTypes = {
     Name: PropTypes.string.isRequired,
     addItem: PropTypes.func.isRequired,
+    removeItem: PropTypes.func.isRequired,
     myName: PropTypes.string.isRequired,
 };
 
